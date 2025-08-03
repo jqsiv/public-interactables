@@ -1,5 +1,3 @@
-yes please make the following better
-
 const COLORS = ["#FF69B4", "#6EC6FF", "#FFDE59", "#88D498"];
 const POINTS = 8, RADIUS = 120, VARIATION = 70, DURATION = 1000;
 

@@ -3,7 +3,7 @@ const POINTS = 8, RADIUS = 120, VARIATION = 70, DURATION = 1000;
 let currentColor, targetColor, points = [], targetPoints = [];
 let animStart, animT = 1;
 let lastFrameTime = 0;
-let targetFrameRate = 60;
+let targetFrameRate = 30;
 
 function setup() {
   createCanvas(600, 600);

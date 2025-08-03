@@ -1,19 +1,17 @@
+yes please make the following better
+
 const COLORS = ["#FF69B4", "#6EC6FF", "#FFDE59", "#88D498"];
 const POINTS = 8, RADIUS = 120, VARIATION = 70, DURATION = 1000;
 
-let currentColor, targetColor;
-let points = [], targetPoints = [], interpPoints = [];
-let animStart = 0, animT = 1;
+let currentColor, targetColor, points = [], targetPoints = [];
+let animStart, animT = 1;
 
 function setup() {
   createCanvas(600, 600);
   stroke(20);
   strokeWeight(2);
-  noFill();
   currentColor = targetColor = color(random(COLORS));
-  points = createBlobPoints();
-  targetPoints = points.map(p => p.copy());
-  interpPoints = points.map(p => p.copy());
+  points = targetPoints = createBlobPoints();
 }
 
 function draw() {
@@ -22,51 +20,26 @@ function draw() {
   
   updateAnimation();
   const t = easeInOutCubic(animT);
-
-  for (let i = 0; i < POINTS; i++) {
-    interpPoints[i].x = lerp(points[i].x, targetPoints[i].x, t);
-    interpPoints[i].y = lerp(points[i].y, targetPoints[i].y, t);
-  }
-
+  const interpPoints = interpolatePoints(points, targetPoints, t);
+  
   fill(lerpColor(currentColor, targetColor, t));
   drawBlob(interpPoints);
-
-  // Lock in transition when complete
+  
   if (animT >= 1 && points[0].dist(targetPoints[0]) > 0.1) {
-    for (let i = 0; i < POINTS; i++) {
-      points[i].set(targetPoints[i]);
-    }
+    points = targetPoints.map(p => p.copy());
     currentColor = targetColor;
   }
 }
 
-function mousePressed() {
-  if (animT >= 1) morph(random(COLORS));
+function mousePressed() { 
+  if (animT >= 1) morph(random(COLORS)); 
 }
 
 function keyPressed() {
   if (animT < 1) return;
-  const colorMap = {
-    ' ': random(COLORS),
-    '1': COLORS[0],
-    '2': COLORS[1],
-    '3': COLORS[2],
-    '4': COLORS[3]
-  };
+  const colorMap = {' ': random(COLORS), '1': COLORS[0], '2': COLORS[1], '3': COLORS[2], '4': COLORS[3]};
   if (colorMap[key]) morph(colorMap[key]);
   if (key === 's' || key === 'S') saveCanvas("blob", "png");
-}
-
-function morph(newColor) {
-  animStart = millis();
-  animT = 0;
-  currentColor = targetColor;
-  targetColor = color(newColor);
-  for (let i = 0; i < POINTS; i++) {
-    const angle = map(i, 0, POINTS, 0, TWO_PI);
-    const r = RADIUS + random(-VARIATION, VARIATION);
-    targetPoints[i].set(cos(angle) * r, sin(angle) * r);
-  }
 }
 
 function updateAnimation() {
@@ -75,23 +48,36 @@ function updateAnimation() {
   }
 }
 
+function morph(newColor) {
+  animStart = millis();
+  animT = 0;
+  currentColor = targetColor;
+  targetColor = color(newColor);
+  targetPoints = createBlobPoints();
+}
+
 function createBlobPoints() {
-  return Array.from({ length: POINTS }, (_, i) => {
+  return Array.from({length: POINTS}, (_, i) => {
     const angle = map(i, 0, POINTS, 0, TWO_PI);
     const r = RADIUS + random(-VARIATION, VARIATION);
     return createVector(cos(angle) * r, sin(angle) * r);
   });
 }
 
+function interpolatePoints(from, to, t) {
+  return from.map((p, i) => createVector(
+    lerp(p.x, to[i].x, t), 
+    lerp(p.y, to[i].y, t)
+  ));
+}
+
 function drawBlob(pts) {
   beginShape();
   curveVertex(pts[pts.length - 1].x, pts[pts.length - 1].y);
-  for (let p of pts) {
-    curveVertex(p.x, p.y);
-  }
+  pts.forEach(p => curveVertex(p.x, p.y));
   curveVertex(pts[0].x, pts[0].y);
   curveVertex(pts[1].x, pts[1].y);
-  endShape(CLOSE);
+  endShape();
 }
 
 function easeInOutCubic(t) {
